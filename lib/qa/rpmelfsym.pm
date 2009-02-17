@@ -59,6 +59,9 @@ sub rpmelfsym ($) {
 	return \@out;
 }
 
+use qa::memoize qw(memoize_st1);
+memoize_st1("rpmelfsym");
+
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(rpmelfsym);

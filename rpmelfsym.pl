@@ -9,10 +9,9 @@ sub print_rpmelfsym ($) {
 	use File::Basename 'basename';
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
-		my ($filename, $syms) = @$file2syms;
-		for my $sym (@$syms) {
-			my ($symtype, $symname) = @$sym;
-			printf "%s\t%s\t%s\t%s\n", $rpm_bn, $filename, $symtype, $symname;
+		my $prefix = "$rpm_bn\t$$file2syms[0]";
+		for my $sym (@{$$file2syms[1]}) {
+			print $prefix, "\t", $$sym[0], "\t", $$sym[1], "\n";
 		}
 	}
 }

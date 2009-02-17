@@ -59,4 +59,8 @@ sub rpmelfsym ($) {
 	return \@out;
 }
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(rpmelfsym);
+
 1;

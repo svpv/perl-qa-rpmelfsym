@@ -4,8 +4,8 @@ use strict;
 
 sub print_rpmelfsym ($) {
 	my $rpm = shift;
-	use qa::rpmelfsym;
-	my $out = qa::rpmelfsym::rpmelfsym $rpm;
+	use qa::rpmelfsym 'rpmelfsym';
+	my $out = rpmelfsym $rpm;
 	use File::Basename 'basename';
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {

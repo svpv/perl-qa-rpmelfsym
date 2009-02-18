@@ -4,7 +4,7 @@ use strict;
 
 {
 	my $magic;
-	use File::LibMagic qw(magic_open magic_load magic_buffer magic_file);
+	use File::LibMagic 0.90 qw(magic_open magic_load magic_buffer magic_file);
 	sub file ($) {
 		unless ($magic) {
 			$magic = magic_open(0) or die "magic_open failed";

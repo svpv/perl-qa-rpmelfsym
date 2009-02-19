@@ -1,6 +1,6 @@
 %define dist qa-rpmelfsym
 Name: perl-%dist
-Version: 0.01
+Version: 0.02
 Release: alt1
 
 Summary: Faster rpmelfsym(1) and bad_elf_symbols implementation
@@ -35,5 +35,8 @@ rm %buildroot%perl_vendor_privlib/qa/*.pl
 %perl_vendor_privlib/qa*
 
 %changelog
+* Thu Feb 19 2009 Alexey Tourbin <at@altlinux.ru> 0.02-alt1
+- rpmelfsym.pm: better handling of tmp write errors
+
 * Wed Feb 18 2009 Alexey Tourbin <at@altlinux.ru> 0.01-alt1
 - initial revision

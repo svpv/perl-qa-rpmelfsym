@@ -2,7 +2,7 @@
 
 use strict;
 
-@ARGV == 2 and do { open my $fh, ">&=3" }
+@ARGV == 2 and do { open my $fh, ">&3" }
 	or die "Usage: $0 DIR1 DIR2 >plus 3>minus\n";
 
 my ($dir1, $dir2) = @ARGV;

@@ -26,7 +26,7 @@ sub rpmelfsym ($) {
 		next unless $ent->size > 4;
 
 		my $filename = $ent->filename;
-		$filename =~ s#^./+#/#;
+		$filename =~ s#^\./+#/#;
 
 		$ent->read(my $magic, 4) == 4 or die "$rpm: $filename: cpio read failed";
 		next unless $magic eq "\177ELF";

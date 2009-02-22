@@ -1,6 +1,6 @@
 %define dist qa-rpmelfsym
 Name: perl-%dist
-Version: 0.03
+Version: 0.04
 Release: alt1
 
 Summary: Faster rpmelfsym(1) and bad_elf_symbols implementation
@@ -35,6 +35,9 @@ rm %buildroot%perl_vendor_privlib/qa/*.pl
 %perl_vendor_privlib/qa*
 
 %changelog
+* Sun Feb 22 2009 Alexey Tourbin <at@altlinux.ru> 0.04-alt1
+- rpmelfsym.pm: fixed ELF magic check for nm(1)
+
 * Fri Feb 20 2009 Alexey Tourbin <at@altlinux.ru> 0.03-alt1
 - implemented bad_elf_symbols_dircmp.pl, for use in girar-builder
 

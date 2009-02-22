@@ -78,7 +78,7 @@ sub rpmelfsym ($) {
 		}
 
 		my $type = file("$tmp");
-		next unless $type =~ /\bELF .*(dynamically linked|shared object)/;
+		next unless $type =~ /\bELF .+ dynamically linked/;
 
 		my @syms;
 		open my $fh, "-|", "nm", "-D", "$tmp" or die "$rpm: $filename: nm failed";

@@ -2,6 +2,20 @@
 
 use strict;
 
+die "Usage: $0 [RPM...] [RPMDIR...]\n" unless @ARGV;
+
+my @rpms;
+for (@ARGV) {
+	if (-d) {
+		my @gl = glob("$_/*.rpm");
+		die "$_: no rpms" unless @gl;
+		push @rpms, @gl;
+	}
+	else {
+		push @rpms, $_;
+	}
+}
+
 sub print_rpmelfsym ($) {
 	my $rpm = shift;
 	use qa::rpmelfsym 'rpmelfsym';
@@ -16,15 +30,4 @@ sub print_rpmelfsym ($) {
 	}
 }
 
-for my $arg (@ARGV) {
-	my @rpms;
-	if (-d $arg) {
-		@rpms = glob("$arg/*.rpm") or die "$arg: no rpms";
-	}
-	else {
-		@rpms = $arg;
-	}
-	for my $rpm (@rpms) {
-		print_rpmelfsym $rpm;
-	}
-}
+print_rpmelfsym($_) for @rpms;

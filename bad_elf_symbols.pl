@@ -2,6 +2,20 @@
 
 use strict;
 
+die "Usage: $0 [RPM...] [RPMDIR...]\n" unless @ARGV;
+
+my @rpms;
+for (@ARGV) {
+	if (-d) {
+		my @gl = glob("$_/*.rpm");
+		die "$_: no rpms" unless @gl;
+		push @rpms, @gl;
+	}
+	else {
+		push @rpms, $_;
+	}
+}
+
 sub collect ($$$) {
 	my ($rpm, $def, $ref) = @_;
 	use qa::rpmelfsym 'rpmelfsym';
@@ -27,26 +41,18 @@ use File::Temp 'tempdir';
 use sigtrap qw(die normal-signals);
 my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
 
-open my $def, "|-", "sort", "-o", "$TMPDIR/def", "-u"
-	or die "sort failed";
-open my $ref, "|-", "sort", "-o", "$TMPDIR/ref", "-t\t", "-k4,4"
-	or die "sort failed";
-
-for my $arg (@ARGV) {
-	my @rpms;
-	if (-d $arg) {
-		@rpms = glob("$arg/*.rpm") or die "$arg: no rpms";
-	}
-	else {
-		@rpms = $arg;
-	}
-	for my $rpm (@rpms) {
-		collect $rpm, $def, $ref;
-	}
+sub collect_rpms ($;$) {
+	my ($rpms, $suffix) = @_;
+	open my $def, "|-", "sort", "-o", "$TMPDIR/def$suffix", "-u"
+		or die "sort failed";
+	open my $ref, "|-", "sort", "-o", "$TMPDIR/ref$suffix", "-t\t", "-k4,4"
+		or die "sort failed";
+	collect($_, $def, $ref) for @$rpms;
+	close $def or die "sort failed";
+	close $ref or die "sort failed";
 }
 
-close $def or die "sort failed";
-close $ref or die "sort failed";
+collect_rpms \@rpms;
 
 0 == system "join", "-t\t", qw(-v1 -14 -21 -o), '1.1 1.2 1.3 1.4',
 	"$TMPDIR/ref", "$TMPDIR/def"

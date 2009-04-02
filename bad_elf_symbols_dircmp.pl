@@ -3,7 +3,7 @@
 use strict;
 
 @ARGV == 2 and do { open my $fh, ">&3" }
-	or die "Usage: $0 DIR1 DIR2 >plus 3>minus\n";
+	or die "Usage: $0 RPMDIR1 RPMDIR2 >plus 3>minus\n";
 
 my ($dir1, $dir2) = @ARGV;
 
@@ -59,21 +59,19 @@ use File::Temp 'tempdir';
 use sigtrap qw(die normal-signals);
 my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
 
-open my $def1, "|-", "sort", "-o", "$TMPDIR/def1", "-u"
-	or die "sort failed";
-open my $ref1, "|-", "sort", "-o", "$TMPDIR/ref1", "-t\t", "-k4,4"
-	or die "sort failed";
-collect($_, $def1, $ref1) for @rpms1;
-close $def1 or die "sort failed";
-close $ref1 or die "sort failed";
+sub collect_rpms ($;$) {
+	my ($rpms, $suffix) = @_;
+	open my $def, "|-", "sort", "-o", "$TMPDIR/def$suffix", "-u"
+		or die "sort failed";
+	open my $ref, "|-", "sort", "-o", "$TMPDIR/ref$suffix", "-t\t", "-k4,4"
+		or die "sort failed";
+	collect($_, $def, $ref) for @$rpms;
+	close $def or die "sort failed";
+	close $ref or die "sort failed";
+}
 
-open my $def2, "|-", "sort", "-o", "$TMPDIR/def2", "-u"
-	or die "sort failed";
-open my $ref2, "|-", "sort", "-o", "$TMPDIR/ref2", "-t\t", "-k4,4"
-	or die "sort failed";
-collect($_, $def2, $ref2) for @rpms2;
-close $def2 or die "sort failed";
-close $ref2 or die "sort failed";
+collect_rpms \@rpms1, "1";
+collect_rpms \@rpms2, "2";
 
 -s "$TMPDIR/def1" or
 -s "$TMPDIR/ref1" or
@@ -81,13 +79,7 @@ close $ref2 or die "sort failed";
 -s "$TMPDIR/ref2" or
 exit 0;
 
-open my $def0, "|-", "sort", "-o", "$TMPDIR/def0", "-u"
-	or die "sort failed";
-open my $ref0, "|-", "sort", "-o", "$TMPDIR/ref0", "-t\t", "-k4,4"
-	or die "sort failed";
-collect($_, $def0, $ref0) for @rpms0;
-close $def0 or die "sort failed";
-close $ref0 or die "sort failed";
+collect_rpms \@rpms0, "0";
 
 0 == system <<'EOF' or die "/bin/sh failed";
 set -efu

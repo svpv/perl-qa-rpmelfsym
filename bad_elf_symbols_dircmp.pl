@@ -44,13 +44,17 @@ sub collect ($$$) {
 		my $U_prefix = "$rpm_bn\t$$file2syms[0]\tU\t";
 		for my $sym (@{$$file2syms[1]}) {
 			if ($$sym[0] eq "U") {
-				print $ref $U_prefix, $$sym[1], "\n"
-					or die "sort failed";
+				$refs .= $U_prefix . $$sym[1] . "\n";
 			}
 			elsif ($$sym[0] =~ /^[A-TV-Z]/) {
-				print $def $$sym[1], "\n"
-					or die "sort failed";
+				$defs .= $$sym[1] . "\n";
 			}
+		}
+		if (defined $defs) {
+			print $def $defs or die "sort failed";
+		}
+		if (defined $refs) {
+			print $ref $refs or die "sort failed";
 		}
 	}
 }

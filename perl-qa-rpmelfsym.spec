@@ -10,6 +10,9 @@ Group: Development/Perl
 URL: %CPAN %dist
 Source: %dist-%version.tar
 
+# sort --compress-program=lzop
+Requires: lzop, coreutils >= 6.8
+
 BuildArch: noarch
 
 # Automatically added by buildreq on Wed Feb 18 2009 (-bi)

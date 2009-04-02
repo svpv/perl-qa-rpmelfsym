@@ -62,10 +62,9 @@ my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
 sub collect_rpms ($;$) {
 	my ($rpms, $suffix) = @_;
 	local $SIG{PIPE} = 'IGNORE';
-	my @sort = qw(sort --compress-program=lzop);
-	open my $def, "|-", @sort, "-o", "$TMPDIR/def$suffix", "-u"
+	open my $def, "|-", "sort", "-o", "$TMPDIR/def$suffix", "-u"
 		or die "sort failed";
-	open my $ref, "|-", @sort, "-o", "$TMPDIR/ref$suffix", "-t\t", "-k4,4"
+	open my $ref, "|-", "sort", "-o", "$TMPDIR/ref$suffix", "-t\t", "-k4,4"
 		or die "sort failed";
 	collect($_, $def, $ref) for @$rpms;
 	close $def or die "sort failed";

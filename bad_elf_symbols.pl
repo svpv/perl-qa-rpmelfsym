@@ -43,6 +43,7 @@ my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
 
 sub collect_rpms ($;$) {
 	my ($rpms, $suffix) = @_;
+	local $SIG{PIPE} = 'IGNORE';
 	open my $def, "|-", "sort", "-o", "$TMPDIR/def$suffix", "-u"
 		or die "sort failed";
 	open my $ref, "|-", "sort", "-o", "$TMPDIR/ref$suffix", "-t\t", "-k4,4"

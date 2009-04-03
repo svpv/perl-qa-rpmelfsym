@@ -1,6 +1,6 @@
 %define dist qa-rpmelfsym
 Name: perl-%dist
-Version: 0.05
+Version: 0.06
 Release: alt1
 
 Summary: Faster rpmelfsym(1) and bad_elf_symbols implementation
@@ -35,6 +35,9 @@ rm %buildroot%perl_vendor_privlib/qa/*.pl
 %perl_vendor_privlib/qa*
 
 %changelog
+* Fri Apr 03 2009 Alexey Tourbin <at@altlinux.ru> 0.06-alt1
+- optimized inner loop writes for speed
+
 * Wed Apr 01 2009 Alexey Tourbin <at@altlinux.ru> 0.05-alt1
 - bad_elf_symbols*.pl: optimize by running sort(1) in background
 

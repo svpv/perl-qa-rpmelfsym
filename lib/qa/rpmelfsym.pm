@@ -28,54 +28,22 @@ sub rpmelfsym ($) {
 		my $filename = $ent->filename;
 		$filename =~ s#^\./+#/#;
 
-		$ent->read(my $magic, 4) == 4 or die "$rpm: $filename: cpio read failed";
+		$ent->read(my $magic, 4) == 4
+			or die "$rpm: $filename: cpio read failed";
 		next unless $magic eq "\177ELF";
 
 		require File::Temp;
 		my $tmp = File::Temp->new;
 
-		my $write = sub ($) {
-			my $len = length $_[0];
-			my $off = 0;
-			my $err;
-			while ($len > 0) {
-				my $wlen = syswrite $tmp, $_[0], $len, $off;
-				if (not defined $wlen) {
-					if ($err++) {
-						die "$rpm: $filename: tmp write failed: $!";
-					}
-					else {
-						warn "warning: $rpm: $filename: tmp write failed: $!";
-						redo;
-					}
-				}
-				elsif ($wlen == 0) {
-					if ($err++) {
-						die "$rpm: $filename: tmp write failed (0)";
-					}
-					else {
-						warn "warning: $rpm: $filename: tmp write failed (0)";
-						redo;
-					}
-				}
-				else {
-					$len -= $wlen;
-					$off += $wlen;
-					undef $err;
-				}
-			}
-		};
-
-		&$write($magic);
-
-		my $n = $ent->size - 4;
-		while ($n > 0) {
-			use List::Util qw(min);
-			my $m = min($n, 8192);
-			$ent->read(my $buf, $m) == $m or die "$rpm: $filename: cpio read failed";
-			&$write($buf);
-			$n -= $m;
+		local ($\, $,);
+		print $tmp $magic
+			or die "$rpm: $filename: tmp write failed: $!";
+		while ($ent->read(my $buf, 8192) > 0) {
+			print $tmp $buf
+			or die "$rpm: $filename: tmp write failed: $!";
 		}
+		$tmp->flush
+			or die "$rpm: $filename: tmp write failed: $!";
 
 		my $type = file("$tmp");
 		next unless $type =~ /\bELF .+ dynamically linked/;

@@ -41,6 +41,7 @@ sub collect ($$$) {
 	use qa::memoize 0.02 'basename';
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
+		my ($defs, $refs);
 		my $U_prefix = "$rpm_bn\t$$file2syms[0]\tU\t";
 		for my $sym (@{$$file2syms[1]}) {
 			if ($$sym[0] eq "U") {

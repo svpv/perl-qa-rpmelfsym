@@ -54,10 +54,10 @@ sub collect ($$$) {
 			}
 		}
 		if (defined $defs) {
-			print $def $defs or die "sort failed";
+			print $def $defs or die "def: $!";
 		}
 		if (defined $refs) {
-			print $ref $refs or die "sort failed";
+			print $ref $refs or die "ref: $!";
 		}
 	}
 }
@@ -68,14 +68,11 @@ my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
 
 sub collect_rpms ($;$) {
 	my ($rpms, $suffix) = @_;
-	local $SIG{PIPE} = 'IGNORE';
-	open my $def, "|-", "sort", "-o", "$TMPDIR/def$suffix", "-u"
-		or die "sort failed";
-	open my $ref, "|-", "sort", "-o", "$TMPDIR/ref$suffix", "-t\t", "-k4,4"
-		or die "sort failed";
+	open my $def, ">", "$TMPDIR/def$suffix" or die "def: $!";
+	open my $ref, ">", "$TMPDIR/ref$suffix" or die "ref: $!";
 	collect($_, $def, $ref) for @$rpms;
-	close $def or die "sort failed";
-	close $ref or die "sort failed";
+	close $def or die "def: $!";
+	close $ref or die "ref: $!";
 }
 
 collect_rpms \@rpms1, "1";
@@ -92,20 +89,38 @@ collect_rpms \@rpms0, "0";
 0 == system <<'EOF' or die "/bin/sh failed";
 set -efu
 cd "$TMPDIR"
+
+sort -u -o def0 def0
+sort -t$'\t' -k4,4 -o ref0 ref0
 join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref0 def0 >tmp
 mv -f tmp ref0
+
+sort -u -o def1 def1
+sort -t$'\t' -k4,4 -o ref1 ref1
+join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref1 def1 >tmp
+mv -f tmp ref0
+
+sort -u -o def2 def2
+sort -t$'\t' -k4,4 -o ref2 ref2
+join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref2 def2 >tmp
+mv -f tmp ref2
+
 sort -m -u -o def1 def1 def0
 sort -m -u -o def2 def2 def0
 rm -f def0
+
 sort -m -t$'\t' -k4,4 -o ref1 ref1 ref0
 sort -m -t$'\t' -k4,4 -o ref2 ref2 ref0
 rm -f ref0
+
 join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref1 def1 >tmp
 sort -u -o ref1 tmp
 rm -f def1 tmp
+
 join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref2 def2 >tmp
 sort -u -o ref2 tmp
 rm -f def2 tmp
+
 comm -13 ref1 ref2
 comm -23 ref1 ref2 >&3
 EOF

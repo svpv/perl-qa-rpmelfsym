@@ -98,8 +98,8 @@ sub rpmelfsym ($) {
 	return \@out;
 }
 
-use qa::memoize qw(memoize_st1);
-memoize_st1("rpmelfsym");
+use qa::memoize 0.02 qw(memoize_bsm);
+memoize_bsm("rpmelfsym");
 
 require Exporter;
 our @ISA = qw(Exporter);

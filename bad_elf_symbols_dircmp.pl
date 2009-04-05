@@ -14,7 +14,7 @@ my @rpms2;
 	@rpms1 = glob("$dir1/*.rpm") or die "$dir1: no rpms";
 	@rpms2 = glob("$dir2/*.rpm") or die "$dir2: no rpms";
 
-	use File::Basename 'basename';
+	use qa::memoize 0.02 'basename';
 	my %rpms1 = map { basename($_) => [ $_, -s $_, -M _ ] } @rpms1;
 	my %rpms2 = map { basename($_) => [ $_, -s $_, -M _ ] } @rpms2;
 
@@ -38,7 +38,7 @@ sub collect ($$$) {
 	my ($rpm, $def, $ref) = @_;
 	use qa::rpmelfsym 'rpmelfsym';
 	my $out = rpmelfsym $rpm;
-	use File::Basename 'basename';
+	use qa::memoize 0.02 'basename';
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
 		my $U_prefix = "$rpm_bn\t$$file2syms[0]\tU\t";

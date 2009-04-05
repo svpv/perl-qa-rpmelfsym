@@ -20,7 +20,7 @@ sub print_rpmelfsym ($) {
 	my $rpm = shift;
 	use qa::rpmelfsym 'rpmelfsym';
 	my $out = rpmelfsym $rpm;
-	use File::Basename 'basename';
+	use qa::memoize 0.02 'basename';
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
 		my $prefix = "$rpm_bn\t$$file2syms[0]";

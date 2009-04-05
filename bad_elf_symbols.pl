@@ -20,7 +20,7 @@ sub collect ($$$) {
 	my ($rpm, $def, $ref) = @_;
 	use qa::rpmelfsym 'rpmelfsym';
 	my $out = rpmelfsym $rpm;
-	use File::Basename 'basename';
+	use qa::memoize 0.02 'basename';
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
 		my ($defs, $refs);

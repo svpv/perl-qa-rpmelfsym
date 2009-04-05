@@ -26,8 +26,8 @@ sub print_rpmelfsym ($) {
 		my $fname = shift @$file2syms;
 		my $prefix = "$rpm_bn\t$fname\t";
 		for my $sym (@$file2syms) {
-			my ($t, $n) = split //, $sym, 2;
-			print $prefix, $t, "\t", $n, "\n";
+			my $t = substr $sym, 0, 1, "";
+			print $prefix, $t, "\t", $sym, "\n";
 		}
 	}
 }

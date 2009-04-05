@@ -7,8 +7,8 @@ die "Usage: $0 [RPM...] [RPMDIR...]\n" unless @ARGV;
 my @rpms;
 for (@ARGV) {
 	if (-d) {
-		my @gl = glob("$_/*.rpm");
-		die "$_: no rpms" unless @gl;
+		use File::Glob 'bsd_glob';
+		my @gl = bsd_glob("$_/*.rpm", 0) or die "$_: no rpms";
 		push @rpms, @gl;
 	}
 	else {

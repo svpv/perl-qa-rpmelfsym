@@ -11,8 +11,9 @@ my @rpms0;
 my @rpms1;
 my @rpms2;
 {
-	@rpms1 = glob("$dir1/*.rpm") or die "$dir1: no rpms";
-	@rpms2 = glob("$dir2/*.rpm") or die "$dir2: no rpms";
+	use File::Glob 'bsd_glob';
+	@rpms1 = bsd_glob("$dir1/*.rpm", 0) or die "$dir1: no rpms";
+	@rpms2 = bsd_glob("$dir2/*.rpm", 0) or die "$dir2: no rpms";
 
 	use qa::memoize 0.02 'basename';
 	my %rpms1 = map { basename($_) => [ $_, -s $_, -M _ ] } @rpms1;

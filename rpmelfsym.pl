@@ -23,9 +23,11 @@ sub print_rpmelfsym ($) {
 	use qa::memoize 0.02 'basename';
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
-		my $prefix = "$rpm_bn\t$$file2syms[0]";
-		for my $sym (@{$$file2syms[1]}) {
-			print $prefix, "\t", $$sym[0], "\t", $$sym[1], "\n";
+		my $fname = shift @$file2syms;
+		my $prefix = "$rpm_bn\t$fname\t";
+		for my $sym (@$file2syms) {
+			my ($t, $n) = split //, $sym, 2;
+			print $prefix, $t, "\t", $n, "\n";
 		}
 	}
 }

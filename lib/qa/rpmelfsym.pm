@@ -48,19 +48,23 @@ sub rpmelfsym ($) {
 		my $type = file("$tmp");
 		next unless $type =~ /\bELF .+ dynamically linked/;
 
-		my @syms;
-		open my $fh, "-|", "nm", "-D", "$tmp" or die "$rpm: $filename: nm failed";
+		my @file2syms = $filename;
+		open my $fh, "-|", "nm", "-D", "$tmp"
+			or die "$rpm: $filename: nm failed";
 		local $_;
 		while (<$fh>) {
 			chomp;
 			my @sym = split;
 			shift @sym if @sym == 3;
-			@sym == 2 or die "$rpm: $filename: invalid nm output: $_";
-			length($sym[0]) == 1 or die "$rpm: $filename: invalid nm output: $_";
-			push @syms, \@sym;
+			2 == @sym
+				or die "$rpm: $filename: invalid nm output: $_";
+			1 == length $sym[0]
+				or die "$rpm: $filename: invalid nm output: $_";
+			push @file2syms, $sym[0] . $sym[1];
 		}
-		close $fh or die "$rpm: $filename: nm failed";
-		push @out, [ $filename, \@syms ] if @syms;
+		close $fh
+			or die "$rpm: $filename: nm failed";
+		push @out, \@file2syms if @file2syms > 1;
 	}
 	@out = sort { $$a[0] cmp $$b[0] } @out;
 	return \@out;

@@ -24,13 +24,14 @@ sub collect ($$$) {
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
 		my ($defs, $refs);
-		my $U_prefix = "$rpm_bn\t$$file2syms[0]\tU\t";
-		for my $sym (@{$$file2syms[1]}) {
-			if ($$sym[0] eq "U") {
-				$refs .= $U_prefix . $$sym[1] . "\n";
+		my $fname = shift @$file2syms;
+		my $U_prefix = "$rpm_bn\t$fname\tU\t";
+		for my $sym (@$file2syms) {
+			if ($sym =~ s/^U//) {
+				$refs .= $U_prefix . $sym . "\n";
 			}
-			elsif ($$sym[0] =~ /^[A-TV-Z]/) {
-				$defs .= $$sym[1] . "\n";
+			elsif ($sym =~ s/^[A-TV-Z]//) {
+				$defs .= $sym . "\n";
 			}
 		}
 		if (defined $defs) {

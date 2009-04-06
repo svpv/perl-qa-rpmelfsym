@@ -23,22 +23,18 @@ sub collect ($$$) {
 	use qa::memoize 0.02 'basename';
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
-		my ($defs, $refs);
 		my $fname = shift @$file2syms;
 		my $U_prefix = "$rpm_bn\t$fname\tU\t";
 		for my $sym (@$file2syms) {
-			if ($sym =~ s/^U//) {
-				$refs .= $U_prefix . $sym . "\n";
+			my $t = substr $sym, 0, 1, "";
+			if ($t eq "U") {
+				print $ref $U_prefix, $sym, "\n"
+					or die "ref: $!";
 			}
-			elsif ($sym =~ s/^[A-TV-Z]//) {
-				$defs .= $sym . "\n";
+			elsif ($t eq ucfirst($t)) {
+				print $def $sym, "\n"
+					or die "def: $!";
 			}
-		}
-		if (defined $defs) {
-			print $def $defs or die "def: $!";
-		}
-		if (defined $refs) {
-			print $ref $refs or die "ref: $!";
 		}
 	}
 }

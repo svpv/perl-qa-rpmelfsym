@@ -35,6 +35,14 @@ my @rpms2;
 	@rpms2 = sort map { $$_[0] } values %rpms2;
 }
 
+use File::Temp 'tempdir';
+use sigtrap qw(die normal-signals);
+my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
+
+my $SEQNO = "AAAA";
+open my $SEQ, ">", "$TMPDIR/seq"
+	or die "seq: $!";
+
 sub collect ($$$) {
 	my ($rpm, $def, $ref) = @_;
 	use qa::rpmelfsym 'rpmelfsym';
@@ -43,11 +51,11 @@ sub collect ($$$) {
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
 		my $fname = shift @$file2syms;
-		my $U_prefix = "$rpm_bn\t$fname\tU\t";
+		print $SEQ $SEQNO, "\t", $rpm_bn, "\t", $fname, "\tU\n";
 		for my $sym (@$file2syms) {
 			my $t = substr $sym, 0, 1, "";
 			if ($t eq "U") {
-				print $ref $U_prefix, $sym, "\n"
+				print $ref $SEQNO, "\t", $sym, "\n"
 					or die "ref: $!";
 			}
 			elsif ($t eq ucfirst($t)) {
@@ -55,12 +63,9 @@ sub collect ($$$) {
 					or die "def: $!";
 			}
 		}
+		$SEQNO++;
 	}
 }
-
-use File::Temp 'tempdir';
-use sigtrap qw(die normal-signals);
-my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
 
 sub collect_rpms ($;$) {
 	my ($rpms, $suffix) = @_;
@@ -73,12 +78,7 @@ sub collect_rpms ($;$) {
 
 collect_rpms \@rpms1, "1";
 collect_rpms \@rpms2, "2";
-
--s "$TMPDIR/def1" or
--s "$TMPDIR/ref1" or
--s "$TMPDIR/def2" or
--s "$TMPDIR/ref2" or
-exit 0;
+exit 0 if $SEQNO eq "AAAA";
 
 collect_rpms \@rpms0, "0";
 
@@ -87,36 +87,44 @@ set -efu
 cd "$TMPDIR"
 
 sort -u -o def0 def0
-sort -t$'\t' -k4,4 -o ref0 ref0
-join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref0 def0 >tmp
+sort -t$'\t' -k2,2 -o ref0 ref0
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref0 def0 >tmp
 mv -f tmp ref0
 
 sort -u -o def1 def1
-sort -t$'\t' -k4,4 -o ref1 ref1
-join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref1 def1 >tmp
-mv -f tmp ref0
+sort -t$'\t' -k2,2 -o ref1 ref1
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref1 def1 >tmp
+mv -f tmp ref1
 
 sort -u -o def2 def2
-sort -t$'\t' -k4,4 -o ref2 ref2
-join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref2 def2 >tmp
+sort -t$'\t' -k2,2 -o ref2 ref2
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref2 def2 >tmp
 mv -f tmp ref2
 
 sort -m -u -o def1 def1 def0
 sort -m -u -o def2 def2 def0
 rm -f def0
 
-sort -m -t$'\t' -k4,4 -o ref1 ref1 ref0
-sort -m -t$'\t' -k4,4 -o ref2 ref2 ref0
+sort -m -t$'\t' -k2,2 -o ref1 ref1 ref0
+sort -m -t$'\t' -k2,2 -o ref2 ref2 ref0
 rm -f ref0
 
-join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref1 def1 >tmp
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref1 def1 >tmp
 sort -u -o ref1 tmp
 rm -f def1 tmp
 
-join -t$'\t' -v1 -14 -21 -o '1.1 1.2 1.3 1.4' ref2 def2 >tmp
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref2 def2 >tmp
 sort -u -o ref2 tmp
 rm -f def2 tmp
 
-comm -13 ref1 ref2
-comm -23 ref1 ref2 >&3
+join -t$'\t' -o '1.2 1.3 1.4 2.2' seq ref1 >tmp
+sort -u -o xref1 tmp
+rm -f ref1 tmp
+
+join -t$'\t' -o '1.2 1.3 1.4 2.2' seq ref2 >tmp
+sort -u -o xref2 tmp
+rm -f ref2 tmp
+
+comm -13 xref1 xref2
+comm -23 xref1 xref2 >&3
 EOF

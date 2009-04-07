@@ -101,21 +101,15 @@ sort -t$'\t' -k2,2 -o ref2 ref2
 join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref2 def2 >tmp
 mv -f tmp ref2
 
-sort -m -u -o def1 def1 def0
-sort -m -u -o def2 def2 def0
-rm -f def0
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref0 def1 >tmpA
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref1 def0 >tmpB
+sort -u -o ref1 tmpA tmpB
 
-sort -m -t$'\t' -k2,2 -o ref1 ref1 ref0
-sort -m -t$'\t' -k2,2 -o ref2 ref2 ref0
-rm -f ref0
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref0 def2 >tmpA
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref2 def0 >tmpB
+sort -u -o ref2 tmpA tmpB
 
-join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref1 def1 >tmp
-sort -u -o ref1 tmp
-rm -f def1 tmp
-
-join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref2 def2 >tmp
-sort -u -o ref2 tmp
-rm -f def2 tmp
+rm -f ref0 def0 def1 def2
 
 join -t$'\t' -o '1.2 1.3 1.4 2.2' seq ref1 >tmp
 sort -u -o xref1 tmp

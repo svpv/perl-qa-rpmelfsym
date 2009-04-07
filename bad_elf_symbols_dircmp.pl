@@ -51,7 +51,8 @@ sub collect ($$$) {
 	my $rpm_bn = basename $rpm;
 	for my $file2syms (@$out) {
 		my $fname = shift @$file2syms;
-		print $SEQ $SEQNO, "\t", $rpm_bn, "\t", $fname, "\tU\n";
+		print $SEQ $SEQNO, "\t", $rpm_bn, "\t", $fname, "\tU\n"
+			or die "seq: $!";
 		for my $sym (@$file2syms) {
 			my $t = substr $sym, 0, 1, "";
 			if ($t eq "U") {

@@ -113,11 +113,9 @@ rm -f ref0 def0 def1 def2
 
 join -t$'\t' -o '1.2 1.3 1.4 2.2' seq ref1 >tmp
 sort -u -o xref1 tmp
-rm -f ref1 tmp
 
 join -t$'\t' -o '1.2 1.3 1.4 2.2' seq ref2 >tmp
 sort -u -o xref2 tmp
-rm -f ref2 tmp
 
 comm -13 xref1 xref2
 comm -23 xref1 xref2 >&3

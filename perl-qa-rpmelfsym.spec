@@ -36,7 +36,7 @@ rm %buildroot%perl_vendor_privlib/qa/*.pl
 
 %changelog
 * Tue Apr 07 2009 Alexey Tourbin <at@altlinux.ru> 0.07-alt1
-- switched to (basename,size,mtime) caching mode
+- switched to (rpm-basename,size,mtime) caching mode
 - flattened down internal data structure, for efficiency
 - reverted piping to sort(1) and other optimizations proved inefficient
 - optimized by saving (rpm-basename,filename) in a separate file

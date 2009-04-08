@@ -61,6 +61,9 @@ sub collect_rpms ($;$) {
 collect_rpms \@rpms;
 exit 0 if $SEQNO eq "AAAA";
 
+close $SEQ
+	or die "seq: $!";
+
 0 == system <<'EOF' or die "/bin/sh failed";
 set -efu
 cd "$TMPDIR"

@@ -83,6 +83,9 @@ exit 0 if $SEQNO eq "AAAA";
 
 collect_rpms \@rpms0, "0";
 
+close $SEQ
+	or die "seq: $!";
+
 0 == system <<'EOF' or die "/bin/sh failed";
 set -efu
 cd "$TMPDIR"

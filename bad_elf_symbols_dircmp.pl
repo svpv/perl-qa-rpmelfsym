@@ -86,39 +86,40 @@ collect_rpms \@rpms0, "0";
 close $SEQ
 	or die "seq: $!";
 
+$ENV{tab} = "\t";
 0 == system <<'EOF' or die "/bin/sh failed";
 set -efu
 cd "$TMPDIR"
 
 sort -u -o def0 def0
-sort -t$'\t' -k2,2 -o ref0 ref0
-join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref0 def0 >tmp
+sort -t"$tab" -k2,2 -o ref0 ref0
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def0 >tmp
 mv -f tmp ref0
 
 sort -u -o def1 def1
-sort -t$'\t' -k2,2 -o ref1 ref1
-join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref1 def1 >tmp
+sort -t"$tab" -k2,2 -o ref1 ref1
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref1 def1 >tmp
 mv -f tmp ref1
 
 sort -u -o def2 def2
-sort -t$'\t' -k2,2 -o ref2 ref2
-join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref2 def2 >tmp
+sort -t"$tab" -k2,2 -o ref2 ref2
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref2 def2 >tmp
 mv -f tmp ref2
 
-join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref0 def1 >tmpA
-join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref1 def0 >tmpB
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def1 >tmpA
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref1 def0 >tmpB
 sort -u -o ref1 tmpA tmpB
 
-join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref0 def2 >tmpA
-join -t$'\t' -v1 -12 -21 -o '1.1 1.2' ref2 def0 >tmpB
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def2 >tmpA
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref2 def0 >tmpB
 sort -u -o ref2 tmpA tmpB
 
 rm -f ref0 def0 def1 def2
 
-join -t$'\t' -o '1.2 1.3 1.4 2.2' seq ref1 >tmp
+join -t"$tab" -o '1.2 1.3 1.4 2.2' seq ref1 >tmp
 sort -u -o xref1 tmp
 
-join -t$'\t' -o '1.2 1.3 1.4 2.2' seq ref2 >tmp
+join -t"$tab" -o '1.2 1.3 1.4 2.2' seq ref2 >tmp
 sort -u -o xref2 tmp
 
 comm -13 xref1 xref2

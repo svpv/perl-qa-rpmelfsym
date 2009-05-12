@@ -20,6 +20,10 @@ use File::Temp 'tempdir';
 use sigtrap qw(die normal-signals);
 my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
 
+# We use $SEQNO as a join key for (rpm-basename,elf-filename) tuples, which
+# we store separately.  Four-letter numbers impose 456K limit on ELF files
+# from within rpm packages which can be processed simultaneously.  However,
+# our typical repo is 10K packages and 30K ELF files total (per arch).
 my $SEQNO = "AAAA";
 open my $SEQ, ">", "$TMPDIR/seq"
 	or die "seq: $!";

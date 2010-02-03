@@ -44,7 +44,7 @@ sub collect ($$$) {
 				print $ref $SEQNO, "\t", $sym, "\n"
 					or die "ref: $!";
 			}
-			elsif ($t eq ucfirst($t)) {
+			elsif ($t eq "u" || $t eq ucfirst($t)) {
 				print $def $sym, "\n"
 					or die "def: $!";
 			}

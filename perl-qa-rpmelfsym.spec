@@ -1,6 +1,6 @@
 %define dist qa-rpmelfsym
 Name: perl-%dist
-Version: 0.07
+Version: 0.08
 Release: alt1
 
 Summary: Faster rpmelfsym(1) and bad_elf_symbols implementation
@@ -35,6 +35,9 @@ rm %buildroot%perl_vendor_privlib/qa/*.pl
 %perl_vendor_privlib/qa*
 
 %changelog
+* Tue Aug 10 2010 Alexey Tourbin <at@altlinux.ru> 0.08-alt1
+- bad_elf_symbols*.pl: handle unique global symbols (Dmitry V. Levin)
+
 * Tue Apr 07 2009 Alexey Tourbin <at@altlinux.ru> 0.07-alt1
 - switched to (rpm-basename,size,mtime) caching mode
 - flattened down internal data structure, for efficiency

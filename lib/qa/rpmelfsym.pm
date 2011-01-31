@@ -28,6 +28,8 @@ sub rpmelfsym ($) {
 		my $filename = $ent->filename;
 		$filename =~ s#^\./+#/#;
 
+		next if $filename =~ m#^/usr/lib/debug/.+\.debug\z#;
+
 		$ent->read(my $magic, 4) == 4
 			or die "$rpm: $filename: cpio read failed";
 		next unless $magic eq "\177ELF";

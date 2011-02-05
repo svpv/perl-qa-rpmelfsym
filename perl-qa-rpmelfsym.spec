@@ -1,6 +1,6 @@
 %define dist qa-rpmelfsym
 Name: perl-%dist
-Version: 0.08
+Version: 0.09
 Release: alt1
 
 Summary: Faster rpmelfsym(1) and bad_elf_symbols implementation
@@ -35,6 +35,10 @@ rm %buildroot%perl_vendor_privlib/qa/*.pl
 %perl_vendor_privlib/qa*
 
 %changelog
+* Sun Feb 06 2011 Alexey Tourbin <at@altlinux.ru> 0.09-alt1
+- qa/rpmelfsym.pm: ignore *.debug files under /usr/lib/debug
+- bad_elf_symbols*.pl: added support for "i" indirect functions
+
 * Tue Aug 10 2010 Alexey Tourbin <at@altlinux.ru> 0.08-alt1
 - bad_elf_symbols*.pl: handle unique global symbols (Dmitry V. Levin)
 

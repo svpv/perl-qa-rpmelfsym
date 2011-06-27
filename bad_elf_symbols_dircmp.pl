@@ -54,24 +54,8 @@ sub collect ($$$) {
 	return if $argz eq "";
 	use qa::memoize 0.02 'basename';
 	my $rpm_bn = basename $rpm;
-	my $prefix;
-	my %deft = map { $_ => 1 } qw(T W V D B A R u i);
-	for my $sym (split "\0", $argz) {
-		my $t = substr $sym, 0, 1, "";
-		if ($t eq "U") {
-			print $ref $SEQNO, "\t", $sym, "\n"
-				or die "ref: $!";
-		}
-		elsif (exists $deft{$t}) {
-			print $def $sym, "\n"
-				or die "def: $!";
-		}
-		elsif ($t eq "/") {
-			$SEQNO++;
-			print $SEQ $SEQNO, "\t", $rpm_bn, "\t/", $sym, "\tU\n"
-				or die "seq: $!";
-		}
-	}
+	use qa::rpmelfsym 'collect_bad_elfsym';
+	collect_bad_elfsym $rpm_bn, $argz, $ref, $def, $SEQ, $SEQNO;
 }
 
 sub collect_rpms ($;$) {

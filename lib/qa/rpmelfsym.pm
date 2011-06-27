@@ -1,6 +1,10 @@
 package qa::rpmelfsym;
 
 use strict;
+our $VERSION = '0.09';
+
+require XSLoader;
+XSLoader::load(__PACKAGE__, $VERSION);
 
 {
 	my $magic;
@@ -72,6 +76,6 @@ memoize_bsm("rpmelfsym");
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(rpmelfsym);
+our @EXPORT_OK = qw(rpmelfsym collect_bad_elfsym);
 
 1;

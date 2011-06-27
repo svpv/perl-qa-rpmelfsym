@@ -31,25 +31,27 @@ open my $SEQ, ">", "$TMPDIR/seq"
 sub collect ($$$) {
 	my ($rpm, $def, $ref) = @_;
 	use qa::rpmelfsym 'rpmelfsym';
-	my $out = rpmelfsym $rpm;
+	my $argz = rpmelfsym $rpm;
+	return if $argz eq "";
 	use qa::memoize 0.02 'basename';
 	my $rpm_bn = basename $rpm;
-	for my $file2syms (@$out) {
-		my $fname = shift @$file2syms;
-		print $SEQ $SEQNO, "\t", $rpm_bn, "\t", $fname, "\tU\n"
-			or die "seq: $!";
-		for my $sym (@$file2syms) {
-			my $t = substr $sym, 0, 1, "";
-			if ($t eq "U") {
-				print $ref $SEQNO, "\t", $sym, "\n"
-					or die "ref: $!";
-			}
-			elsif ($t eq "u" or $t eq "i" or $t eq ucfirst($t)) {
-				print $def $sym, "\n"
-					or die "def: $!";
-			}
+	my $prefix;
+	my %deft = map { $_ => 1 } qw(T W V D B A R u i);
+	for my $sym (split "\0", $argz) {
+		my $t = substr $sym, 0, 1, "";
+		if ($t eq "U") {
+			print $ref $SEQNO, "\t", $sym, "\n"
+				or die "ref: $!";
 		}
-		$SEQNO++;
+		elsif (exists $deft{$t}) {
+			print $def $sym, "\n"
+				or die "def: $!";
+		}
+		elsif ($t eq "/") {
+			$SEQNO++;
+			print $SEQ $SEQNO, "\t", $rpm_bn, "\t/", $sym, "\tU\n"
+				or die "seq: $!";
+		}
 	}
 }
 

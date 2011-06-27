@@ -19,14 +19,14 @@ sub rpmelfsym ($) {
 	my $rpm = shift;
 	require RPM::Payload;
 	my $cpio = RPM::Payload->new($rpm);
-	my @out;
+	my $out = "";
 	while (my $ent = $cpio->next) {
 		use Fcntl 'S_ISREG';
 		next unless S_ISREG($ent->mode);
 		next unless $ent->size > 4;
 
 		my $filename = $ent->filename;
-		$filename =~ s#^\./+#/#;
+		$filename =~ s#^\./|^/|^#/#;
 
 		next if $filename =~ m#^/usr/lib/debug/.+\.debug\z#;
 
@@ -62,10 +62,9 @@ sub rpmelfsym ($) {
 		}
 		close $fh
 			or die "$rpm: $filename: nm failed";
-		push @out, \@file2syms if @file2syms > 1;
+		$out .= join "\0", @file2syms, "" if @file2syms > 1;
 	}
-	@out = sort { $$a[0] cmp $$b[0] } @out;
-	return \@out;
+	return $out;
 }
 
 use qa::memoize 0.02 qw(memoize_bsm);

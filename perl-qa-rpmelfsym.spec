@@ -1,6 +1,6 @@
 %define dist qa-rpmelfsym
 Name: perl-%dist
-Version: 0.09
+Version: 0.10
 Release: alt1
 
 Summary: Faster rpmelfsym(1) and bad_elf_symbols implementation
@@ -10,9 +10,7 @@ Group: Development/Perl
 URL: %CPAN %dist
 Source: %dist-%version.tar
 
-BuildArch: noarch
-
-# Automatically added by buildreq on Wed Feb 18 2009 (-bi)
+# Automatically added by buildreq on Thu Sep 08 2011 (-bi)
 BuildRequires: perl-File-LibMagic perl-devel perl-qa-cache
 
 %description
@@ -28,13 +26,18 @@ no description
 %perl_vendor_install
 
 # MakeMaker sucks (and I don't know how to tweak it)
-rm %buildroot%perl_vendor_privlib/qa/*.pl
+rm %buildroot%perl_vendor_archlib/qa/*.pl
 
 %files
 %_bindir/*.pl
-%perl_vendor_privlib/qa*
+%perl_vendor_archlib/qa*
+%perl_vendor_autolib/qa*
 
 %changelog
+* Thu Sep 08 2011 Alexey Tourbin <at@altlinux.ru> 0.10-alt1
+- changed internal data format to argz blob
+- rewritten bad_elf_symbols inner loop in XS
+
 * Sun Feb 06 2011 Alexey Tourbin <at@altlinux.ru> 0.09-alt1
 - qa/rpmelfsym.pm: ignore *.debug files under /usr/lib/debug
 - bad_elf_symbols*.pl: added support for "i" indirect functions

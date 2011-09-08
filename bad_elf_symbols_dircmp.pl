@@ -39,42 +39,12 @@ use File::Temp 'tempdir';
 use sigtrap qw(die normal-signals);
 my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
 
-# We use $SEQNO as a join key for (rpm-basename,elf-filename) tuples, which
-# we store separately.  Four-letter numbers impose 456K limit on ELF files
-# from within rpm packages which can be processed simultaneously.  However,
-# our typical repo is 10K packages and 30K ELF files total (per arch).
-my $SEQNO = "AAAA";
-open my $SEQ, ">", "$TMPDIR/seq"
-	or die "seq: $!";
+use qa::rpmelfsym 'collect_bad_elfsym';
+collect_bad_elfsym $TMPDIR, "1", \@rpms1;
+collect_bad_elfsym $TMPDIR, "2", \@rpms2;
+exit 0 unless -s "$TMPDIR/seq";
 
-sub collect ($$$) {
-	my ($rpm, $def, $ref) = @_;
-	use qa::rpmelfsym 'rpmelfsym';
-	my $argz = rpmelfsym $rpm;
-	return if $argz eq "";
-	use qa::memoize 0.02 'basename';
-	my $rpm_bn = basename $rpm;
-	use qa::rpmelfsym 'collect_bad_elfsym';
-	collect_bad_elfsym $rpm_bn, $argz, $ref, $def, $SEQ, $SEQNO;
-}
-
-sub collect_rpms ($;$) {
-	my ($rpms, $suffix) = @_;
-	open my $def, ">", "$TMPDIR/def$suffix" or die "def: $!";
-	open my $ref, ">", "$TMPDIR/ref$suffix" or die "ref: $!";
-	collect($_, $def, $ref) for @$rpms;
-	close $def or die "def: $!";
-	close $ref or die "ref: $!";
-}
-
-collect_rpms \@rpms1, "1";
-collect_rpms \@rpms2, "2";
-exit 0 if $SEQNO eq "AAAA";
-
-collect_rpms \@rpms0, "0";
-
-close $SEQ
-	or die "seq: $!";
+collect_bad_elfsym $TMPDIR, "0", \@rpms0;
 
 $ENV{tab} = "\t";
 0 == system <<'EOF' or die "/bin/sh failed";

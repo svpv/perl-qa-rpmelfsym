@@ -78,4 +78,40 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(rpmelfsym collect_bad_elfsym);
 
+# We use seqno as a join key for (rpm-basename,elf-filename) tuples, which
+# we store separately.  Four-letter numbers impose 456K limit on ELF files
+# from within rpm packages which can be processed simultaneously.  However,
+# our typical repo is 10K packages and 30K ELF files total (per arch).
+
+sub last_seqno ($) {
+	my $fname = shift;
+	open my $fh, "<", $fname
+		or return "AAAA";
+	stat $fh and my $size = -s _
+		or return "AAAA";
+	use constant PIPE_BUF => 4096;
+	seek $fh, - PIPE_BUF, 2 if $size > PIPE_BUF;
+	read $fh, my $buf, PIPE_BUF;
+	my @lines = split /\n/, $buf;
+	my $line = $lines[-1];
+	$line =~ /^([A-Z]{4})\t/
+		or die "$fname: invalid last line: $line";
+	return $1;
+}
+
+sub collect_bad_elfsym ($$$) {
+	my ($dir, $suffix, $rpms) = @_;
+	my $seqno = last_seqno "$dir/seq";
+	open my $ref, ">>", "$dir/ref$suffix" or die "ref: $!";
+	open my $def, ">>", "$dir/def$suffix" or die "def: $!";
+	open my $seq, ">>", "$dir/seq" or die "seq: $!";
+	for my $rpm (@$rpms) {
+		my $argz = rpmelfsym $rpm;
+		next if $argz eq "";
+		use qa::memoize 0.02 'basename';
+		$rpm = basename $rpm;
+		collect_bad_elfsym1($rpm, $argz, $ref, $def, $seq, $seqno);
+	}
+}
+
 1;

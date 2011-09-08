@@ -12,7 +12,7 @@
 MODULE	= qa::rpmelfsym		PACKAGE = qa::rpmelfsym
 
 void
-collect_bad_elfsym(rpm, argz, ref, def, seq, seqno)
+collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)
 	SV * rpm
 	SV * argz
 	PerlIO * ref

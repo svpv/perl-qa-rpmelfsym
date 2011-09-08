@@ -82,6 +82,7 @@ collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)
 		break;
 	    case '/':
 		sv_inc(seqno);
+		sv_inc(seqno);
 		seqno_pv = SvPVbyte(seqno, seqno_len);
 		n1 = seqno_len + rpm_len + argz_len + 5;
 		assert(n1 < PIPE_BUF);

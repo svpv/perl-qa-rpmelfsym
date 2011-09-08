@@ -99,19 +99,44 @@ sub last_seqno ($) {
 	return $1;
 }
 
-sub collect_bad_elfsym ($$$) {
-	my ($dir, $suffix, $rpms) = @_;
-	my $seqno = last_seqno "$dir/seq";
-	open my $ref, ">>", "$dir/ref$suffix" or die "ref: $!";
-	open my $def, ">>", "$dir/def$suffix" or die "def: $!";
-	open my $seq, ">>", "$dir/seq" or die "seq: $!";
+sub collect_bad_elfsym2 ($$$$$) {
+	my ($ref, $def, $seq, $seqno, $rpms) = @_;
+	my $cnt = 0;
 	for my $rpm (@$rpms) {
+		next unless $cnt++ % 2 == 0;
 		my $argz = rpmelfsym $rpm;
 		next if $argz eq "";
 		use qa::memoize 0.02 'basename';
 		$rpm = basename $rpm;
 		collect_bad_elfsym1($rpm, $argz, $ref, $def, $seq, $seqno);
 	}
+}
+
+sub collect_bad_elfsym ($$$) {
+	my ($dir, $suffix, $rpms) = @_;
+	my $seqno = last_seqno "$dir/seq";
+	open my $ref, ">>", "$dir/ref$suffix" or die "ref: $!";
+	open my $def, ">>", "$dir/def$suffix" or die "def: $!";
+	open my $seq, ">>", "$dir/seq" or die "seq: $!";
+	use 5.010;
+	my $pid1 = fork // die "fork: $!";
+	if ($pid1 == 0) {
+		collect_bad_elfsym2($ref, $def, $seq, $seqno, $rpms);
+		exit 0;
+	}
+	my $pid2 = fork // die "fork: $!";
+	if ($pid2 == 0) {
+		# process "odd" rpms
+		shift @$rpms;
+		# use alternate seqno
+		$seqno++;
+		collect_bad_elfsym2($ref, $def, $seq, $seqno, $rpms);
+		exit 0;
+	}
+	$pid1 == waitpid $pid1, 0 and $? == 0 or die "pid1 failed";
+	$pid2 == waitpid $pid2, 0 and $? == 0 or die "pid2 failed";
+	0 == system "sort", "-o", "$dir/seq", "$dir/seq"
+		or die "sort seq failed";
 }
 
 1;

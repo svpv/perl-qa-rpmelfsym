@@ -51,11 +51,6 @@ $ENV{tab} = "\t";
 set -efu
 cd "$TMPDIR"
 
-sort -u -o def0 def0
-sort -t"$tab" -k2,2 -o ref0 ref0
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def0 >tmp
-mv -f tmp ref0
-
 sort -u -o def1 def1
 sort -t"$tab" -k2,2 -o ref1 ref1
 join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref1 def1 >tmp
@@ -66,15 +61,20 @@ sort -t"$tab" -k2,2 -o ref2 ref2
 join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref2 def2 >tmp
 mv -f tmp ref2
 
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def1 >tmpA
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref1 def0 >tmpB
-sort -u -o ref1 tmpA tmpB
+sort -u -o def0 def0
+sort -t"$tab" -k2,2 -o ref0 ref0
 
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def2 >tmpA
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref2 def0 >tmpB
-sort -u -o ref2 tmpA tmpB
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def0 >tmp &
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref1 def0 >ref1a
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref2 def0 >ref2a
+wait $!
+mv -f tmp ref0
+rm -f def0
 
-rm -f ref0 def0 def1 def2
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def1 >ref1b
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def2 >ref2b
+sort -u -o ref1 ref1a ref1b
+sort -u -o ref2 ref2a ref2b
 
 join -t"$tab" -o '1.2 1.3 1.4 2.2' seq ref1 >tmp
 sort -u -o xref1 tmp

@@ -1,6 +1,6 @@
 %define dist qa-rpmelfsym
 Name: perl-%dist
-Version: 0.10
+Version: 0.11
 Release: alt1
 
 Summary: Faster rpmelfsym(1) and bad_elf_symbols implementation
@@ -34,6 +34,10 @@ rm %buildroot%perl_vendor_archlib/qa/*.pl
 %perl_vendor_autolib/qa*
 
 %changelog
+* Sun Sep 11 2011 Alexey Tourbin <at@altlinux.ru> 0.11-alt1
+- qa/rpmelfsym.pm: implemented parallel collect_bad_elfsym routine
+- bad_elf_symbols_dircmp.pl: optimized def0 usage for parallel join
+
 * Thu Sep 08 2011 Alexey Tourbin <at@altlinux.ru> 0.10-alt1
 - changed internal data format to argz blob
 - rewritten bad_elf_symbols inner loop in XS

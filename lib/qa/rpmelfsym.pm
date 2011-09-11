@@ -1,7 +1,7 @@
 package qa::rpmelfsym;
 
 use strict;
-our $VERSION = '0.09';
+our $VERSION = '0.11';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);

@@ -1,7 +1,7 @@
 %define dist qa-rpmelfsym
 Name: perl-%dist
 Version: 0.11
-Release: alt1
+Release: alt2
 
 Summary: Faster rpmelfsym(1) and bad_elf_symbols implementation
 License: GPLv2+
@@ -10,7 +10,7 @@ Group: Development/Perl
 URL: %CPAN %dist
 Source: %dist-%version.tar
 
-# Automatically added by buildreq on Thu Sep 08 2011 (-bi)
+# Automatically added by buildreq on Mon Oct 10 2011 (-bi)
 BuildRequires: perl-File-LibMagic perl-devel perl-qa-cache
 
 %description
@@ -34,6 +34,9 @@ rm %buildroot%perl_vendor_archlib/qa/*.pl
 %perl_vendor_autolib/qa*
 
 %changelog
+* Mon Oct 10 2011 Alexey Tourbin <at@altlinux.ru> 0.11-alt2
+- rebuilt for perl-5.14
+
 * Sun Sep 11 2011 Alexey Tourbin <at@altlinux.ru> 0.11-alt1
 - qa/rpmelfsym.pm: implemented parallel collect_bad_elfsym routine
 - bad_elf_symbols_dircmp.pl: optimized def0 usage for parallel join

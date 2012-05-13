@@ -36,7 +36,7 @@ collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)
 	    int n1 = 0;
 	    int n2 = 0;
 	    argz_len = strlen(argz_pv);
-	    switch(*argz_pv) {
+	    switch (*argz_pv) {
 	    case 'U':
 		n1 = seqno_len + argz_len + 1;
 		assert(n1 < PIPE_BUF);

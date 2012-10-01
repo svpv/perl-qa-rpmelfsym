@@ -13,6 +13,49 @@
 MODULE	= qa::rpmelfsym		PACKAGE = qa::rpmelfsym
 
 void
+print_elfsym(rpm, argz, fh)
+	SV * rpm
+	SV * argz
+	PerlIO * fh
+    CODE:
+	STRLEN argz_len = 0;
+	char *argz_pv = SvPVbyte(argz, argz_len);
+	char *argz_end = argz_pv + argz_len + 1;
+	if (*argz_pv != '/')
+	    croak("argz: invalid data");
+	STRLEN rpm_len = 0;
+	char *rpm_pv = SvPVbyte(rpm, rpm_len);
+	STRLEN fname_len = 0;
+	char *fname_pv = NULL;
+	char t[2] = "t\t";
+	while (argz_pv < argz_end) {
+	    int n1 = 0;
+	    int n2 = 0;
+	    argz_len = strlen(argz_pv);
+	    if (isALPHA(*argz_pv)) {
+		n1 = rpm_len + fname_len + argz_len + 4;
+		rpm_pv[rpm_len] = '\t';
+		fname_pv[fname_len] = '\t';
+		n2 += PerlIO_write(fh, rpm_pv, rpm_len + 1);
+		n2 += PerlIO_write(fh, fname_pv, fname_len + 1);
+		rpm_pv[rpm_len] = '\0';
+		fname_pv[fname_len] = '\0';
+		t[0] = *argz_pv;
+		n2 += PerlIO_write(fh, t, 2);
+		argz_pv[argz_len] = '\n';
+		n2 += PerlIO_write(fh, argz_pv + 1, argz_len);
+		argz_pv[argz_len] = '\0';
+		if (n1 != n2)
+		    croak("fh: write error: %s", strerror(errno));
+	    }
+	    else if (*argz_pv == '/') {
+		fname_pv = argz_pv;
+		fname_len = argz_len;
+	    }
+	    argz_pv += argz_len + 1;
+	}
+
+void
 collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)
 	SV * rpm
 	SV * argz

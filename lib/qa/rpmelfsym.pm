@@ -77,7 +77,7 @@ memoize_bsm("rpmelfsym");
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(rpmelfsym collect_bad_elfsym);
+our @EXPORT_OK = qw(rpmelfsym collect_bad_elfsym print_elfsym);
 
 # We use seqno as a join key for (rpm-basename,elf-filename) tuples, which
 # we store separately.  Four-letter numbers impose 456K limit on ELF files

@@ -23,16 +23,8 @@ sub print_rpmelfsym ($) {
 	return if $argz eq "";
 	use qa::memoize 0.02 'basename';
 	my $rpm_bn = basename $rpm;
-	my $prefix;
-	for my $sym (split "\0", $argz) {
-		my $t = substr $sym, 0, 1, "";
-		if ($t eq "/") {
-			$prefix = "$rpm_bn\t/$sym\t";
-		}
-		else {
-			print $prefix, $t, "\t", $sym, "\n";
-		}
-	}
+	use qa::rpmelfsym 'print_elfsym';
+	print_elfsym $rpm_bn, $argz, *STDOUT;
 }
 
 print_rpmelfsym($_) for @rpms;

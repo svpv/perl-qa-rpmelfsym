@@ -1,5 +1,6 @@
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 #define PERL_NO_GET_CONTEXT
 #include "EXTERN.h"
 #include "perl.h"

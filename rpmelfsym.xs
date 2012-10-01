@@ -25,34 +25,28 @@ print_elfsym(rpm, argz, fh)
 	char *rpm_pv = SvPVbyte(rpm, rpm_len);
 	if (*argz_pv != '/')
 	    croak("%s: argz: invalid data", rpm_pv);
+	SV *bufsv = sv_mortalcopy(rpm);
+	char *buf = SvGROW(bufsv, rpm_len + 256);
+	buf[rpm_len] = '\t';
 	STRLEN prefix_len = 0;
-	char *prefix_pv = NULL;
 	while (argz_pv < argz_end) {
-	    int n1 = 0;
-	    int n2 = 0;
 	    argz_len = strlen(argz_pv);
 	    if (isALPHA(*argz_pv)) {
-		n1 = prefix_len + argz_len + 3;
-		prefix_pv[rpm_len] = '\t';
-		prefix_pv[prefix_len] = '\t';
-		n2 += PerlIO_write(fh, prefix_pv, prefix_len + 1);
-		prefix_pv[rpm_len] = '\0';
-		prefix_pv[prefix_len] = '\0';
-		argz_pv[-1] = argz_pv[0];
-		argz_pv[0] = '\t';
-		argz_pv[argz_len] = '\n';
-		n2 += PerlIO_write(fh, argz_pv - 1, argz_len + 2);
-		argz_pv[0] = argz_pv[-1];
-		argz_pv[-1] = '\0';
-		argz_pv[argz_len] = '\0';
+		int n1 = prefix_len + 3 + argz_len;
+		buf = SvGROW(bufsv, n1);
+		buf[prefix_len + 1] = *argz_pv;
+		memcpy(buf + prefix_len + 3, argz_pv + 1, argz_len - 1);
+		buf[n1 - 1] = '\n';
+		int n2 = PerlIO_write(fh, buf, n1);
 		if (n1 != n2)
 		    croak("fh: write error: %s", strerror(errno));
 	    }
 	    else if (*argz_pv == '/') {
-		prefix_len = rpm_len + argz_len + 1;
-		prefix_pv = rpm_pv = SvGROW(rpm, prefix_len + 1);
-		memcpy(prefix_pv + rpm_len + 1, argz_pv, argz_len);
-		prefix_pv[prefix_len] = '\0';
+		prefix_len = rpm_len + 1 + argz_len;
+		buf = SvGROW(bufsv, prefix_len + 3);
+		memcpy(buf + rpm_len + 1, argz_pv, argz_len);
+		buf[prefix_len + 0] = '\t';
+		buf[prefix_len + 2] = '\t';
 	    }
 	    argz_pv += argz_len + 1;
 	}

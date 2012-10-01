@@ -68,6 +68,7 @@ sub rpmelfsym ($) {
 			or die "$rpm: $filename: nm failed";
 		$out .= join "\0", @file2syms, "" if @file2syms > 1;
 	}
+	chop $out;
 	return $out;
 }
 

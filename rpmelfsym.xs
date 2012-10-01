@@ -25,8 +25,8 @@ collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)
 	int seq_fill = 0;
 	STRLEN argz_len = 0;
 	char *argz_pv = SvPVbyte(argz, argz_len);
-	char *argz_end = argz_pv + argz_len;
-	if (*argz_pv != '/' || argz_pv[argz_len - 1] != '\0')
+	char *argz_end = argz_pv + argz_len + 1;
+	if (*argz_pv != '/')
 	    croak("argz: invalid data");
 	STRLEN rpm_len = 0;
 	char *rpm_pv = SvPVbyte(rpm, rpm_len);

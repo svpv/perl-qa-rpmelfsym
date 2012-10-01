@@ -72,6 +72,7 @@ collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)
 	    croak("%s: argz: invalid data", rpm_pv);
 	STRLEN seqno_len = 0;
 	char *seqno_pv = NULL;
+	SvGROW(seqno, 256);
 	while (argz_pv < argz_end) {
 	    int n1 = 0;
 	    int n2 = 0;
@@ -87,12 +88,12 @@ collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)
 			croak("ref: flush error: %s", strerror(errno));
 		    ref_fill = n1;
 		}
+		seqno_pv = SvGROW(seqno, n1);
+		memcpy(seqno_pv + seqno_len + 1, argz_pv + 1, argz_len - 1);
 		seqno_pv[seqno_len] = '\t';
-		argz_pv[argz_len] = '\n';
-		n2 += PerlIO_write(ref, seqno_pv, seqno_len + 1);
-		n2 += PerlIO_write(ref, argz_pv + 1, argz_len);
+		seqno_pv[n1 - 1] = '\n';
+		n2 = PerlIO_write(ref, seqno_pv, n1);
 		seqno_pv[seqno_len] = '\0';
-		argz_pv[argz_len] = '\0';
 		if (n1 != n2)
 		    croak("ref: write error: %s", strerror(errno));
 		break;
@@ -115,7 +116,7 @@ collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)
 		    def_fill = n1;
 		}
 		argz_pv[argz_len] = '\n';
-		n2 += PerlIO_write(def, argz_pv + 1, argz_len);
+		n2 = PerlIO_write(def, argz_pv + 1, argz_len);
 		argz_pv[argz_len] = '\0';
 		if (n1 != n2)
 		    croak("def: write error: %s", strerror(errno));

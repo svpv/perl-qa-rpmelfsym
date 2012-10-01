@@ -21,36 +21,38 @@ print_elfsym(rpm, argz, fh)
 	STRLEN argz_len = 0;
 	char *argz_pv = SvPVbyte(argz, argz_len);
 	char *argz_end = argz_pv + argz_len + 1;
-	if (*argz_pv != '/')
-	    croak("argz: invalid data");
 	STRLEN rpm_len = 0;
 	char *rpm_pv = SvPVbyte(rpm, rpm_len);
-	STRLEN fname_len = 0;
-	char *fname_pv = NULL;
-	char t[2] = "t\t";
+	if (*argz_pv != '/')
+	    croak("%s: argz: invalid data", rpm_pv);
+	STRLEN prefix_len = 0;
+	char *prefix_pv = NULL;
 	while (argz_pv < argz_end) {
 	    int n1 = 0;
 	    int n2 = 0;
 	    argz_len = strlen(argz_pv);
 	    if (isALPHA(*argz_pv)) {
-		n1 = rpm_len + fname_len + argz_len + 4;
-		rpm_pv[rpm_len] = '\t';
-		fname_pv[fname_len] = '\t';
-		n2 += PerlIO_write(fh, rpm_pv, rpm_len + 1);
-		n2 += PerlIO_write(fh, fname_pv, fname_len + 1);
-		rpm_pv[rpm_len] = '\0';
-		fname_pv[fname_len] = '\0';
-		t[0] = *argz_pv;
-		n2 += PerlIO_write(fh, t, 2);
+		n1 = prefix_len + argz_len + 3;
+		prefix_pv[rpm_len] = '\t';
+		prefix_pv[prefix_len] = '\t';
+		n2 += PerlIO_write(fh, prefix_pv, prefix_len + 1);
+		prefix_pv[rpm_len] = '\0';
+		prefix_pv[prefix_len] = '\0';
+		argz_pv[-1] = argz_pv[0];
+		argz_pv[0] = '\t';
 		argz_pv[argz_len] = '\n';
-		n2 += PerlIO_write(fh, argz_pv + 1, argz_len);
+		n2 += PerlIO_write(fh, argz_pv - 1, argz_len + 2);
+		argz_pv[0] = argz_pv[-1];
+		argz_pv[-1] = '\0';
 		argz_pv[argz_len] = '\0';
 		if (n1 != n2)
 		    croak("fh: write error: %s", strerror(errno));
 	    }
 	    else if (*argz_pv == '/') {
-		fname_pv = argz_pv;
-		fname_len = argz_len;
+		prefix_len = rpm_len + argz_len + 1;
+		prefix_pv = rpm_pv = SvGROW(rpm, prefix_len + 1);
+		memcpy(prefix_pv + rpm_len + 1, argz_pv, argz_len);
+		prefix_pv[prefix_len] = '\0';
 	    }
 	    argz_pv += argz_len + 1;
 	}
@@ -70,10 +72,10 @@ collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)
 	STRLEN argz_len = 0;
 	char *argz_pv = SvPVbyte(argz, argz_len);
 	char *argz_end = argz_pv + argz_len + 1;
-	if (*argz_pv != '/')
-	    croak("argz: invalid data");
 	STRLEN rpm_len = 0;
 	char *rpm_pv = SvPVbyte(rpm, rpm_len);
+	if (*argz_pv != '/')
+	    croak("%s: argz: invalid data", rpm_pv);
 	STRLEN seqno_len = 0;
 	char *seqno_pv = NULL;
 	while (argz_pv < argz_end) {

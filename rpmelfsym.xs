@@ -50,6 +50,8 @@ print_elfsym(rpm, argz, fh)
 	    }
 	    argz_pv += argz_len + 1;
 	}
+	if (PerlIO_flush(fh) != 0)
+	    croak("fh: flush error: %s", strerror(errno));
 
 void
 collect_bad_elfsym1(rpm, argz, ref, def, seq, seqno)

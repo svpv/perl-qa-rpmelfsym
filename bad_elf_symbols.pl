@@ -2,13 +2,15 @@
 
 use strict;
 
-die "Usage: $0 [RPM...] [RPMDIR...]\n" unless @ARGV;
+use Getopt::Long 2.24 qw(GetOptions :config gnu_getopt);
+GetOptions "include=s" => \(my $include = "*.rpm") and @ARGV
+	or die "Usage: $0 [--include=GLOB] [RPM...] [RPMDIR...]\n";
 
 my @rpms;
 for (@ARGV) {
 	if (-d) {
 		use File::Glob 'bsd_glob';
-		my @gl = bsd_glob("$_/*.rpm", 0) or die "$_: no rpms";
+		my @gl = bsd_glob("$_/$include", 0) or die "$_: no rpms";
 		push @rpms, @gl;
 	}
 	else {

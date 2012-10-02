@@ -2,8 +2,10 @@
 
 use strict;
 
-@ARGV == 2 and do { open my $fh, ">&3" }
-	or die "Usage: $0 RPMDIR1 RPMDIR2 >plus 3>minus\n";
+use Getopt::Long 2.24 qw(GetOptions :config gnu_getopt);
+GetOptions "include=s" => \(my $include = "*.rpm")
+	and @ARGV == 2 and do { open my $fh, ">&3" }
+	or die "Usage: $0 [--include=GLOB] RPMDIR1 RPMDIR2 >plus 3>minus\n";
 
 my ($dir1, $dir2) = @ARGV;
 
@@ -12,8 +14,8 @@ my @rpms1;
 my @rpms2;
 {
 	use File::Glob 'bsd_glob';
-	@rpms1 = bsd_glob("$dir1/*.rpm", 0) or die "$dir1: no rpms";
-	@rpms2 = bsd_glob("$dir2/*.rpm", 0) or die "$dir2: no rpms";
+	@rpms1 = bsd_glob("$dir1/$include", 0) or die "$dir1: no rpms";
+	@rpms2 = bsd_glob("$dir2/$include", 0) or die "$dir2: no rpms";
 
 	use qa::memoize 0.02 'basename';
 	my %rpms1 = map { basename($_) => [ $_, -s $_, -M _ ] } @rpms1;

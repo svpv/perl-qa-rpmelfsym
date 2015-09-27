@@ -55,14 +55,15 @@ sub rpmelfsym ($) {
 		next unless $type =~ /\bELF .+ dynamically linked/;
 
 		my @file2syms = $filename;
-		open my $fh, "-|", qw(nm -D -P), "$tmp"
+		open my $fh, "-|", qw(nm -D), "$tmp"
 			or die "$rpm: $filename: nm failed";
 		local $_;
 		while (<$fh>) {
-			my @sym = split;
-			@sym >= 2 and 1 == length $sym[1]
-				or die "$rpm: $filename: invalid nm output: @sym";
-			push @file2syms, $sym[1] . $sym[0];
+			if (/^([[:xdigit:]]{8}([[:xdigit:]]{8})? | {9}( {8})?)([[:alpha:]]) ([^\t\n]+)$/) {
+				push @file2syms, $4 . $5;
+			} else {
+				die "$rpm: $filename: invalid nm output: $_";
+			}
 		}
 		close $fh
 			or die "$rpm: $filename: nm failed";

@@ -28,17 +28,15 @@ exit 0 unless -s "$TMPDIR/seq";
 
 $ENV{tab} = "\t";
 0 == system <<'EOF' or die "/bin/sh failed";
-set -efu
+set -efu ${BASH_VERSION:+-o pipefail}
 cd "$TMPDIR"
 
-sort -u -o def def
-sort -t"$tab" -k2,2 -o ref ref
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref def >tmp
-mv -f tmp ref
-
-rm -f def
+mkfifo pipe
+snzip -d <ref.sz >pipe &
+snzip -d <def.sz |
+join -t"$tab" -v1 -12 -21 -o '1.1 1.2' pipe - >ref
+wait $!
 
 sort -t"$tab" -k1,1 -o ref ref
-join -t"$tab" -o '1.2 1.3 1.4 2.2' seq ref >tmp
-sort -u tmp
+join -t"$tab" -o '1.2 1.3 1.4 2.2' seq ref |sort -u
 EOF

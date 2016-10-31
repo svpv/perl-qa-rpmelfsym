@@ -13,6 +13,9 @@ Source: %dist-%version.tar
 # rpmelfsym.pm uses nm(1)
 Requires: binutils
 
+# uses this fast compressor
+Requires: snzip
+
 # Automatically added by buildreq on Mon Oct 10 2011 (-bi)
 BuildRequires: perl-File-LibMagic perl-devel perl-qa-cache
 

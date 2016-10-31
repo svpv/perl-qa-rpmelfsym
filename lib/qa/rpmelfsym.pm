@@ -114,13 +114,59 @@ sub collect_bad_elfsym2 ($$$$$) {
 	}
 }
 
+# A few notes about sorting.
+# 1) sort(1) is the bottleneck; as workers retrieve cached data,
+# they stall while piping to sort(1);
+# 2) by default, sort(1) tends to eat up all system resources,
+# and must be limited nonetheless; it might be fast, but soon
+# you discover that you need to re-read some files from disk;
+# 3) by default, when sorting from a pipe, sort(1) sorts in
+# "non-parallel" mode (can't get >= 100% CPU usage); to put it
+# into parallel mode, --buffer-size=BIG-ENOUGH option, poorly
+# documented with respect to this purpose, needs to be used;
+# 4) symbol lists can be compressed by a factor of 4-5; also,
+# symbols lists are typically huge; e.g. unsorted def is 622M;
+# to avoid extra memory pressure, we do not expose raw symbols
+# to virtual memory; to this end, we use snzip(1) real-time
+# compressor; e.g. `sort -u def' is 369M, while def.sz is 80M;
+# 5) for our purposes, snzip(1) performs better than lz4(1);
+# 6) `sort -k2' is faster than `sort -k2,2'.
+our @SORT = qw(sort --parallel=2 --buffer-size=128M --compress-program=snzip);
+
+sub open_sort_and_snzip {
+	my ($out, @how) = @_;
+	pipe my ($zR, $zW) or die "pipe: $!";
+	use 5.010;
+	my $zpid = fork // die "fork: $!";
+	if ($zpid == 0) {
+		open STDIN, "<&", $zR or die "snzip stdin: $!";
+		open STDOUT, ">", "$out.sz" or die "snzip stdout: $!";
+		close $zR;
+		close $zW;
+		exec "snzip";
+		die "cannot exec snzip";
+	}
+	close $zR;
+	pipe my ($sR, $sW) or die "pipe: $!";
+	my $spid = fork // die "fork: $!";
+	if ($spid == 0) {
+		open STDIN, "<&", $sR or die "sort stdin: $!";
+		open STDOUT, ">&", $zW or die "sort stdout: $!";
+		close $sR;
+		close $sW;
+		close $zW;
+		exec @SORT, @how;
+		die "cannot exec sort";
+	}
+	return $sW, $spid, $zpid;
+}
+
 sub collect_bad_elfsym ($$$) {
 	my ($dir, $suffix, $rpms) = @_;
 	my $seqno = last_seqno "$dir/seq";
-	open my $ref, ">>", "$dir/ref$suffix" or die "ref: $!";
-	open my $def, ">>", "$dir/def$suffix" or die "def: $!";
 	open my $seq, ">>", "$dir/seq" or die "seq: $!";
-	use 5.010;
+	my ($ref, $refspid, $refzpid) = open_sort_and_snzip "$dir/ref$suffix", "-t\t", "-k2";
+	my ($def, $defspid, $defzpid) = open_sort_and_snzip "$dir/def$suffix", "-u";
 	my $pid1 = fork // die "fork: $!";
 	if ($pid1 == 0) {
 		collect_bad_elfsym2($ref, $def, $seq, $seqno, $rpms);
@@ -135,8 +181,14 @@ sub collect_bad_elfsym ($$$) {
 		collect_bad_elfsym2($ref, $def, $seq, $seqno, $rpms);
 		exit 0;
 	}
+	close $ref;
+	close $def;
 	$pid1 == waitpid $pid1, 0 and $? == 0 or die "pid1 failed";
 	$pid2 == waitpid $pid2, 0 and $? == 0 or die "pid2 failed";
+	$refspid == waitpid $refspid, 0 and $? == 0 or die "refspid failed";
+	$defspid == waitpid $defspid, 0 and $? == 0 or die "defspid failed";
+	$refzpid == waitpid $refzpid, 0 and $? == 0 or die "refzpid failed";
+	$defzpid == waitpid $defzpid, 0 and $? == 0 or die "defzpid failed";
 	0 == system "sort", "-o", "$dir/seq", "$dir/seq"
 		or die "sort seq failed";
 }

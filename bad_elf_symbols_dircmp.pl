@@ -39,7 +39,7 @@ my @rpms2;
 
 use File::Temp 'tempdir';
 use sigtrap qw(die normal-signals);
-my $TMPDIR = $ENV{TMPDIR} = tempdir(CLEANUP => 1);
+my $TMPDIR = $ENV{TMPDIR} = tempdir qw(rpmelfsym.XXXXXXXX TMPDIR 1 CLEANUP 1);
 
 use qa::rpmelfsym 'collect_bad_elfsym';
 collect_bad_elfsym $TMPDIR, "1", \@rpms1;

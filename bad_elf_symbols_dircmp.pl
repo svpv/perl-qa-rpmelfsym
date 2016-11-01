@@ -48,41 +48,24 @@ exit 0 unless -s "$TMPDIR/seq";
 
 collect_bad_elfsym $TMPDIR, "0", \@rpms0;
 
-$ENV{tab} = "\t";
+# We use /bin/sh with bash syntax.
+# You may want to change this to
+#    system qw(bash -c) => <<'EOF'
 0 == system <<'EOF' or die "/bin/sh failed";
-set -efu
+set -efu -o pipefail +o posix
 cd "$TMPDIR"
 
-sort -u -o def1 def1
-sort -t"$tab" -k2,2 -o ref1 ref1
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref1 def1 >tmp
-mv -f tmp ref1
+make_xref()
+{
+join -t$'\t' -v1 -12 -21 -o '1.1 1.2' \
+	<(sort -m -k2 <(snzip -d <ref0.sz) <(snzip -d <ref$1.sz) ) \
+	<(sort -m -u  <(snzip -d <def0.sz) <(snzip -d <def$1.sz) ) |sort |
+		join -t$'\t' -o '1.2 1.3 1.4 2.2' seq - |sort -u >xref$1
+}
 
-sort -u -o def2 def2
-sort -t"$tab" -k2,2 -o ref2 ref2
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref2 def2 >tmp
-mv -f tmp ref2
-
-sort -u -o def0 def0
-sort -t"$tab" -k2,2 -o ref0 ref0
-
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def0 >tmp &
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref1 def0 >ref1a
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref2 def0 >ref2a
+make_xref 1 &
+make_xref 2
 wait $!
-mv -f tmp ref0
-rm -f def0
-
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def1 >ref1b
-join -t"$tab" -v1 -12 -21 -o '1.1 1.2' ref0 def2 >ref2b
-sort -u -o ref1 ref1a ref1b
-sort -u -o ref2 ref2a ref2b
-
-join -t"$tab" -o '1.2 1.3 1.4 2.2' seq ref1 >tmp
-sort -u -o xref1 tmp
-
-join -t"$tab" -o '1.2 1.3 1.4 2.2' seq ref2 >tmp
-sort -u -o xref2 tmp
 
 comm -13 xref1 xref2
 comm -23 xref1 xref2 >&3

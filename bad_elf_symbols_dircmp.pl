@@ -44,7 +44,10 @@ my $TMPDIR = $ENV{TMPDIR} = tempdir qw(rpmelfsym.XXXXXXXX TMPDIR 1 CLEANUP 1);
 use qa::rpmelfsym 'collect_bad_elfsym';
 collect_bad_elfsym $TMPDIR, "1", \@rpms1;
 collect_bad_elfsym $TMPDIR, "2", \@rpms2;
-exit 0 unless -s "$TMPDIR/seq";
+unless (-s "$TMPDIR/seq") {
+	warn basename($0), ": no ELF binaries\n";
+	exit 0;
+}
 
 collect_bad_elfsym $TMPDIR, "0", \@rpms0;
 

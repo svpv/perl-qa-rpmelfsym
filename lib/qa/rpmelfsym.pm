@@ -23,6 +23,8 @@ sub rpmelfsym ($) {
 	my $rpm = shift;
 	require RPM::Payload;
 	my $cpio = RPM::Payload->new($rpm);
+	$rpm =~ s#.*/##;
+	my ($skipcnt, $skipfname);
 	my $out = "";
 	while (my $ent = $cpio->next) {
 		use Fcntl 'S_ISREG';
@@ -54,6 +56,12 @@ sub rpmelfsym ($) {
 		my $type = file("$tmp");
 		next unless $type =~ /\bELF .+ dynamically linked/;
 
+		if ($filename =~ m#^/usr/share/#) {
+			$skipcnt++ and $skipfname = $filename or
+			warn "$rpm: $filename: skipping ELF binary\n";
+			next;
+		}
+
 		my @file2syms = $filename;
 		open my $fh, "-|", qw(nm -D), "$tmp"
 			or die "$rpm: $filename: nm failed";
@@ -69,6 +77,9 @@ sub rpmelfsym ($) {
 			or die "$rpm: $filename: nm failed";
 		$out .= join "\0", @file2syms, "" if @file2syms > 1;
 	}
+	$skipcnt == 2 and warn "$rpm: $skipfname: skipping ELF binary\n" or
+	$skipcnt >= 3 and warn "$rpm: skipped @{[$skipcnt-1]} more binaries under /usr/share\n";
+
 	chop $out;
 	return $out;
 }

@@ -19,12 +19,18 @@ XSLoader::load(__PACKAGE__, $VERSION);
 	}
 }
 
+# the longest common prefix
+sub lcp ($$) {
+	return substr $_[0], 0, $+[0]
+		if ($_[0] ^ $_[1]) =~ /^\0+/;
+}
+
 sub rpmelfsym ($) {
 	my $rpm = shift;
 	require RPM::Payload;
 	my $cpio = RPM::Payload->new($rpm);
 	$rpm =~ s#.*/##;
-	my ($skipcnt, $skipfname);
+	my ($skipcnt, $skipfname, $skiplcp);
 	my $out = "";
 	while (my $ent = $cpio->next) {
 		use Fcntl 'S_ISREG';
@@ -57,8 +63,13 @@ sub rpmelfsym ($) {
 		next unless $type =~ /\bELF .+ dynamically linked/;
 
 		if ($filename =~ m#^/usr/share/#) {
-			$skipcnt++ and $skipfname = $filename or
-			warn "$rpm: $filename: skipping ELF binary\n";
+			if ($skipcnt++ == 0) {
+				warn "$rpm: $filename: skipping ELF binary\n";
+				$skiplcp = $skipfname = $filename;
+			}
+			else {
+				$skiplcp = lcp $skiplcp, $skipfname = $filename;
+			}
 			next;
 		}
 
@@ -77,9 +88,14 @@ sub rpmelfsym ($) {
 			or die "$rpm: $filename: nm failed";
 		$out .= join "\0", @file2syms, "" if @file2syms > 1;
 	}
-	$skipcnt == 2 and warn "$rpm: $skipfname: skipping ELF binary\n" or
-	$skipcnt >= 3 and warn "$rpm: skipped @{[$skipcnt-1]} more binaries under /usr/share\n";
-
+	if ($skipcnt == 2) {
+		warn "$rpm: $skipfname: skipping ELF binary\n";
+	}
+	elsif ($skipcnt > 2) {
+		$skipcnt--;
+		$skiplcp =~ s#(.+)/.*#$1#;
+		warn "$rpm: skipped $skipcnt more binaries under $skiplcp\n";
+	}
 	chop $out;
 	return $out;
 }

@@ -8,10 +8,10 @@ XSLoader::load(__PACKAGE__, $VERSION);
 
 {
 	my $magic;
-	use File::LibMagic 0.90 qw(magic_open magic_load magic_buffer magic_file);
+	use File::LibMagic 0.90 qw(magic_open magic_load magic_file MAGIC_SYMLINK);
 	sub file ($) {
 		unless ($magic) {
-			$magic = magic_open(0) or die "magic_open failed";
+			$magic = magic_open(MAGIC_SYMLINK) or die "magic_open failed";
 			magic_load($magic, undef);
 		}
 		my $f = shift;
@@ -32,6 +32,7 @@ sub rpmelfsym ($) {
 	$rpm =~ s#.*/##;
 	my ($skipcnt, $skipfname, $skiplcp);
 	my $out = "";
+	my ($tmp, $err, $save, $tmpfname);
 	while (my $ent = $cpio->next) {
 		use Fcntl 'S_ISREG';
 		next unless S_ISREG($ent->mode);
@@ -46,8 +47,12 @@ sub rpmelfsym ($) {
 			or die "$rpm: $filename: cpio read failed";
 		next unless $magic eq "\177ELF";
 
-		require File::Temp;
-		my $tmp = File::Temp->new;
+		unless ($tmp) {
+			open $tmp, "+>", undef or die "cannot create temporary file";
+			open $err, "+>", undef or die "cannot create temporary file";
+			open $save, ">&STDERR" or die "cannot save STDERR";
+			$tmpfname = "/proc/$$/fd/" . fileno($tmp);
+		}
 
 		local ($\, $,);
 		print $tmp $magic
@@ -59,7 +64,8 @@ sub rpmelfsym ($) {
 		$tmp->flush
 			or die "$rpm: $filename: tmp write failed: $!";
 
-		my $type = file("$tmp");
+		seek $tmp, 0, 0 or die "cannot seek"; # this extra seek is mandatory
+		my $type = file($tmpfname);
 		next unless $type =~ /\bELF .+ dynamically linked/;
 
 		if ($filename =~ m#^/usr/share/#) {
@@ -74,8 +80,14 @@ sub rpmelfsym ($) {
 		}
 
 		my @file2syms = $filename;
-		open my $fh, "-|", qw(nm -D), "$tmp"
-			or die "$rpm: $filename: nm failed";
+
+		seek $tmp, 0, 0 or die "cannot seek"; # not mandatory, apparently
+		open STDERR, ">&", $err  or die "cannot redirect STDERR";
+		my $ret =
+		open my $fh, "-|", qw(nm -D), $tmpfname;
+		open STDERR, ">&", $save or die "cannot restore STDERR";
+		$ret	or die "$rpm: $filename: nm failed";
+
 		local $_;
 		while (<$fh>) {
 			if (/^([[:xdigit:]]{8}([[:xdigit:]]{8})? | {9}( {8})?)([[:alpha:]]) ([^\t\n]+)$/) {
@@ -84,9 +96,21 @@ sub rpmelfsym ($) {
 				die "$rpm: $filename: invalid nm output: $_";
 			}
 		}
+		seek $err, 0, 0 or die "cannot seek"; # this extra seek is mandatory
+		while (<$err>) {
+			chomp;
+			s/\Q$tmpfname\E/$filename/g and
+			warn "$rpm: $_\n" or
+			warn "$rpm: $filename: $_\n";
+		}
 		close $fh
 			or die "$rpm: $filename: nm failed";
 		$out .= join "\0", @file2syms, "" if @file2syms > 1;
+
+		truncate $tmp, 0 or die "cannot truncate";
+		truncate $err, 0 or die "cannot truncate";
+		seek $tmp, 0, 0 or die "cannot seek";
+		seek $err, 0, 0 or die "cannot seek";
 	}
 	if ($skipcnt == 2) {
 		warn "$rpm: $skipfname: skipping ELF binary\n";

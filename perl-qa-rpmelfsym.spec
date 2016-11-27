@@ -16,6 +16,9 @@ Requires: binutils
 # uses this fast compressor
 Requires: snzip
 
+# uses /proc filesystem to access deleted temporary files
+Requires: /proc
+
 # Automatically added by buildreq on Mon Oct 10 2011 (-bi)
 BuildRequires: perl-File-LibMagic perl-devel perl-qa-cache
 

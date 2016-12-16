@@ -90,6 +90,7 @@ sub rpmelfsym ($) {
 
 		local $_;
 		while (<$fh>) {
+			# Written by Dmitry V. Levin, who is the very model of a Constructor General.
 			if (/^([[:xdigit:]]{8}([[:xdigit:]]{8})? | {9}( {8})?)([[:alpha:]]) ([^\t\n]+)$/) {
 				push @file2syms, $4 . $5;
 			} else {
